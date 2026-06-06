@@ -1,13 +1,13 @@
 import os
-# hugging face镜像设置，如果国内环境无法使用启用该设置
-# os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 from dotenv import load_dotenv
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_community.llms import Ollama  # 改用 Ollama
+# 或使用 ChatOllama 获得更好的对话体验
+from langchain_community.chat_models import ChatOllama
 
 load_dotenv()
 
@@ -27,7 +27,7 @@ embeddings = HuggingFaceEmbeddings(
     model_kwargs={'device': 'cpu'},
     encode_kwargs={'normalize_embeddings': True}
 )
-  
+
 # 构建向量存储
 vectorstore = InMemoryVectorStore(embeddings)
 vectorstore.add_documents(chunks)
@@ -35,43 +35,24 @@ vectorstore.add_documents(chunks)
 # 提示词模板
 prompt = ChatPromptTemplate.from_template("""请根据下面提供的上下文信息来回答问题。
 请确保你的回答完全基于这些上下文。
-如果上下文中没有足够的信息来回答问题，请直接告知：“抱歉，我无法根据提供的上下文找到相关信息来回答此问题。”
+如果上下文中没有足够的信息来回答问题，请直接告知："抱歉，我无法根据提供的上下文找到相关信息来回答此问题。"
 
 上下文:
 {context}
 
 问题: {question}
 
-回答:"""
-                                          )
+回答:""")
 
-# 配置大语言模型
-
-# # 使用 AIHubmix
-# llm = ChatOpenAI(
-#     model="glm-4.7-flash-free",
-#     temperature=0.7,
-#     max_tokens=4096,
-#     api_key=os.getenv("AIHUBMIX_API_KEY"),
-#     base_url="https://aihubmix.com/v1"
-# )
-
-# 使用 modelscope
-llm = ChatOpenAI(
-    model="deepseek-ai/DeepSeek-V3.2",
+# ========== 修改部分：使用本地 Ollama ==========
+# 方式1：使用 ChatOllama (推荐，支持对话模型)
+llm = ChatOllama(
+    model="qwen2.5:7b",  # 本地模型名称，需要先用 ollama pull 下载
     temperature=0.7,
-    max_tokens=4096,
-    api_key=os.getenv("MODELSCOPE_API_KEY"),
-    base_url="https://api-inference.modelscope.cn/v1"
+    num_predict=4096,    # 相当于 max_tokens
+    base_url="http://localhost:5005"  # Ollama 默认地址
 )
 
-# llm = ChatOpenAI(
-#     model="deepseek-chat",
-#     temperature=0.7,
-#     max_tokens=4096,
-#     api_key=os.getenv("DEEPSEEK_API_KEY"),
-#     base_url="https://api.deepseek.com"
-# )
 
 # 用户查询
 question = "文中举了哪些例子？"

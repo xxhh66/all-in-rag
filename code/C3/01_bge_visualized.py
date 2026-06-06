@@ -6,23 +6,42 @@ model = Visualized_BGE(model_name_bge="BAAI/bge-base-en-v1.5",
 model.eval()
 
 with torch.no_grad():
-    text_emb = model.encode(text="datawhale开源组织的logo")
+    text_emb = model.encode(text="blue whale")
     img_emb_1 = model.encode(image="../../data/C3/imgs/datawhale01.png")
-    multi_emb_1 = model.encode(image="../../data/C3/imgs/datawhale01.png", text="datawhale开源组织的logo")
+    multi_emb_1 = model.encode(image="../../data/C3/imgs/datawhale01.png", text="blue whale")
     img_emb_2 = model.encode(image="../../data/C3/imgs/datawhale02.png")
-    multi_emb_2 = model.encode(image="../../data/C3/imgs/datawhale02.png", text="datawhale开源组织的logo")
+    multi_emb_2 = model.encode(image="../../data/C3/imgs/datawhale02.png", text="blue whale")
+# with torch.no_grad():
+#     text_emb = model.encode(text="datawhale开源组织的logo")
+#     img_emb_1 = model.encode(image="../../data/C3/imgs/datawhale01.png")
+#     multi_emb_1 = model.encode(image="../../data/C3/imgs/datawhale01.png", text="datawhale开源组织的logo")
+#     img_emb_2 = model.encode(image="../../data/C3/imgs/datawhale02.png")
+#     multi_emb_2 = model.encode(image="../../data/C3/imgs/datawhale02.png", text="datawhale开源组织的logo")
 
+print(f"文本向量 shape: {text_emb.shape}")
+print(f"文本向量维度: {text_emb.shape[-1]}")  
+
+print(f"图像向量1 shape: {img_emb_1.shape}")
+print(f"图像向量1维度: {img_emb_1.shape[-1]}")
+
+print(f"多模态向量1 shape: {multi_emb_1.shape}")
+print(f"多模态向量1维度: {multi_emb_1.shape[-1]}")
+
+print(f"图像向量2 shape: {img_emb_2.shape}")
+print(f"多模态向量2 shape: {multi_emb_2.shape}")
 # 计算相似度
 sim_1 = img_emb_1 @ img_emb_2.T
 sim_2 = img_emb_1 @ multi_emb_1.T
 sim_3 = text_emb @ multi_emb_1.T
 sim_4 = multi_emb_1 @ multi_emb_2.T
+sim_5 = img_emb_2 @ multi_emb_2.T
 
 print("=== 相似度计算结果 ===")
 print(f"纯图像 vs 纯图像: {sim_1}")
 print(f"图文结合1 vs 纯图像: {sim_2}")
 print(f"图文结合1 vs 纯文本: {sim_3}")
 print(f"图文结合1 vs 图文结合2: {sim_4}")
+print(f"纯文本2 vs 图文结合2: {sim_5}")
 
 # 向量信息分析
 print("\n=== 嵌入向量信息 ===")

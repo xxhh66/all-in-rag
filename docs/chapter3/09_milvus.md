@@ -34,6 +34,7 @@ wget https://github.com/milvus-io/milvus/releases/download/v2.5.14/milvus-standa
 ```
 
 ```powershell
+mkdir milvus && cd milvus
 # Windows (使用 PowerShell)
 Invoke-WebRequest -Uri "https://github.com/milvus-io/milvus/releases/download/v2.5.14/milvus-standalone-docker-compose.yml" -OutFile "docker-compose.yml"
 ```

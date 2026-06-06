@@ -4,9 +4,21 @@ from langchain_community.document_loaders import TextLoader
 loader = TextLoader("../../data/C2/txt/蜂医.txt", encoding="utf-8")
 docs = loader.load()
 
+separators=[
+    "\n\n", "\n", " ",
+    ".", ",", "\u200b",      # 零宽空格(泰文、日文)
+    "\uff0c", "\u3001",      # 全角逗号、表意逗号
+    "\uff0e", "\u3002",      # 全角句号、表意句号
+    ""
+]
+
+# spiltter = RecursiveCharacterTextSplitter.from_language(
+#     language=Language.PYTHON
+# )
+
 text_splitter = RecursiveCharacterTextSplitter(
     # 针对中英文混合文本，定义一个更全面的分隔符列表
-    separators=["\n\n", "\n", "。", "，", " ", ""], # 按顺序尝试分割
+    separators=separators, # 按顺序尝试分割
     chunk_size=200,
     chunk_overlap=10
 )
