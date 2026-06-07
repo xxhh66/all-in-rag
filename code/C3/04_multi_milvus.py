@@ -32,7 +32,11 @@ class Encoder:
             query_emb = self.model.encode(image=image_path)
         return query_emb.tolist()[0]
 
-def visualize_results(query_image_path: str, retrieved_images: list, img_height: int = 300, img_width: int = 300, row_count: int = 3) -> np.ndarray:
+def visualize_results(query_image_path: str, 
+                      retrieved_images: list, 
+                      img_height: int = 300, 
+                      img_width: int = 300, 
+                      row_count: int = 3) -> np.ndarray:
     """从检索到的图像列表创建一个全景图用于可视化。"""
     panoramic_width = img_width * row_count
     panoramic_height = img_height * row_count

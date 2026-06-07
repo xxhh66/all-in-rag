@@ -8,6 +8,7 @@ from typing import List
 
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_community.chat_models.moonshot import MoonshotChat
+from langchain_community.chat_models import ChatOllama  # 改为 Ollama
 from langchain_core.documents import Document
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -17,38 +18,90 @@ logger = logging.getLogger(__name__)
 class GenerationIntegrationModule:
     """生成集成模块 - 负责LLM集成和回答生成"""
     
-    def __init__(self, model_name: str = "kimi-k2-0711-preview", temperature: float = 0.1, max_tokens: int = 2048):
+    # def __init__(self, model_name: str = "kimi-k2-0711-preview", temperature: float = 0.1, max_tokens: int = 2048):
+    #     """
+    #     初始化生成集成模块
+        
+    #     Args:
+    #         model_name: 模型名称
+    #         temperature: 生成温度
+    #         max_tokens: 最大token数
+    #     """
+    #     self.model_name = model_name
+    #     self.temperature = temperature
+    #     self.max_tokens = max_tokens
+    #     self.llm = None
+    #     self.setup_llm()
+    
+    # def setup_llm(self):
+    #     """初始化大语言模型"""
+    #     logger.info(f"正在初始化LLM: {self.model_name}")
+
+    #     api_key = os.getenv("MOONSHOT_API_KEY")
+    #     if not api_key:
+    #         raise ValueError("请设置 MOONSHOT_API_KEY 环境变量")
+
+    #     self.llm = MoonshotChat(
+    #         model=self.model_name,
+    #         temperature=self.temperature,
+    #         max_tokens=self.max_tokens,
+    #         moonshot_api_key=api_key
+    #     )
+        
+    #     logger.info("LLM初始化完成")
+
+    def __init__(self, 
+                 model_name: str = "qwen2.5:7b", 
+                 temperature: float = 0.1, 
+                 max_tokens: int = 2048,
+                 base_url: str = "http://localhost:5005"):  # 添加 base_url 参数
         """
         初始化生成集成模块
         
         Args:
-            model_name: 模型名称
+            model_name: 模型名称（Ollama中的模型名）
             temperature: 生成温度
             max_tokens: 最大token数
+            base_url: Ollama服务地址
         """
         self.model_name = model_name
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.base_url = base_url
         self.llm = None
         self.setup_llm()
     
     def setup_llm(self):
-        """初始化大语言模型"""
-        logger.info(f"正在初始化LLM: {self.model_name}")
-
-        api_key = os.getenv("MOONSHOT_API_KEY")
-        if not api_key:
-            raise ValueError("请设置 MOONSHOT_API_KEY 环境变量")
-
-        self.llm = MoonshotChat(
+        """初始化本地大语言模型（Ollama）"""
+        logger.info(f"正在初始化本地LLM: {self.model_name} (Ollama)")
+        
+        # 检查 Ollama 服务是否可用
+        import requests
+        try:
+            response = requests.get(f"{self.base_url}/api/tags", timeout=5)
+            if response.status_code != 200:
+                logger.warning(f"Ollama服务响应异常: {response.status_code}")
+        except requests.exceptions.ConnectionError:
+            logger.error(f"无法连接到 Ollama 服务: {self.base_url}")
+            logger.error("请确保 Ollama 已启动并运行")
+            raise ConnectionError(f"Ollama 服务未运行: {self.base_url}")
+        
+        # 使用 ChatOllama（本地模型）
+        self.llm = ChatOllama(
             model=self.model_name,
             temperature=self.temperature,
-            max_tokens=self.max_tokens,
-            moonshot_api_key=api_key
+            num_predict=self.max_tokens,  # Ollama 使用 num_predict
+            base_url=self.base_url,
+            verbose=True
         )
         
-        logger.info("LLM初始化完成")
-    
+        # 可选：测试模型是否可用
+        try:
+            test_response = self.llm.invoke("测试连接")
+            logger.info(f"LLM初始化完成，模型: {self.model_name}")
+        except Exception as e:
+            logger.error(f"模型调用失败: {e}")
+            raise    
     def generate_basic_answer(self, query: str, context_docs: List[Document]) -> str:
         """
         生成基础回答

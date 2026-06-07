@@ -351,4 +351,3 @@ C-RAG 的工作流程可以概括为 **“检索-评估-行动”** 三个阶段
 
 [^7]: [*Corrective-RAG (CRAG)*](https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_crag/).
 
-
